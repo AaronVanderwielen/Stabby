@@ -1,4 +1,5 @@
-﻿import Lib = require('./lib');
+﻿import _ = require('underscore');
+import Lib = require('./lib');
 import Player = require('./player');
 
 export interface Section {
@@ -309,7 +310,6 @@ export class World {
         // world
         this.initGrid();
         this.build();
-        this.createMapObjects();
     }
 
     initGrid() {
@@ -484,31 +484,6 @@ export class World {
         }
     }
 
-    rollForItem(block: Block, chanceTypes) {
-        // roll for chance
-        var rand = Math.random(),
-            prev = 0;
-
-        // chance types = [{ c: .1, types: [] }]
-        for (var c in chanceTypes) {
-            if (rand >= prev && rand <= prev + chanceTypes[c].c) {
-                // now pick random item
-                var itemType = chanceTypes[c].types[Math.round(Math.random() * (chanceTypes[c].types.length - 1))],
-                    item = new MapItem(itemType);
-
-                item.x = item.width >= (this.tileSize / 2) ? block.x * this.tileSize + (this.tileSize / 2) : block.x * this.tileSize + (this.tileSize / 2);
-                item.y = item.height >= (this.tileSize / 2) ? block.y * this.tileSize + (this.tileSize / 2) : block.y * this.tileSize + (this.tileSize / 2);
-                item.blockX = block.x;
-                item.blockY = block.y;
-                item.sectionId = block.sectionId;
-
-                this.map.objects.push(item);
-                block.objects.push(item);
-            }
-            prev += chanceTypes[c].c;
-        }
-    }
-
     randShape(cx: number, cy: number, d: number, smooth: number, type: TerrainType, overwrite?: Array<TerrainType>) {
         var startX = Math.round(cx - d - (d * Math.random())),
             endX = Math.round(cx + d + (d * Math.random())),
@@ -643,55 +618,6 @@ export class World {
         }
     }
 
-    createMapObjects() {
-        for (var sy = 0; sy < this.map.sectionsY; sy++) {
-            for (var sx = 0; sx < this.map.sectionsX; sx++) {
-                var startX = sx * (this.numX / this.map.sectionsX),
-                    endX = startX + (this.numX / this.map.sectionsX),
-                    startY = sy * (this.numY / this.map.sectionsY),
-                    endY = startY + (this.numY / this.map.sectionsY);
-
-                for (var y = startY; y < endY; y++) {
-                    var row = this.map.grid[y];
-
-                    for (var x = startX; x < endX; x++) {
-                        var block = row[x];
-                        var chanceTypes;
-                        if (block.type === TerrainType.beach) {
-                            chanceTypes = [
-                                { c: .005, types: [ItemType.rockA, ItemType.rockB, ItemType.rockC, ItemType.bone] }
-                            ];
-                            this.rollForItem(block, chanceTypes);
-                        }
-                        else if (block.type === TerrainType.dirt) {
-                            chanceTypes = [
-                                { c: .01, types: [ItemType.rockA, ItemType.rockB, ItemType.rockC, ItemType.bone] },
-                                { c: .005, types: [ItemType.log, ItemType.stickA, ItemType.stickB] }
-                            ];
-                            this.rollForItem(block, chanceTypes);
-                        }
-                        else if (block.type === TerrainType.grass) {
-                            chanceTypes = [
-                                { c: .005, types: [ItemType.rocksA, ItemType.rocksB, ItemType.rockD, ItemType.rockE] },
-                                { c: .005, types: [ItemType.bone, ItemType.stickA, ItemType.stickB] },
-                                { c: .1, types: [ItemType.grassA, ItemType.grassB, ItemType.grassC, ItemType.grassD] },
-                                { c: .01, types: [ItemType.berry, ItemType.bush, ItemType.fern, ItemType.flowerA, ItemType.flowerB, ItemType.mushroom, ItemType.plant, ItemType.log] },
-                                { c: .05, types: [ItemType.tree] }
-                            ];
-                            this.rollForItem(block, chanceTypes);
-                        }
-                        else if (block.type === TerrainType.rock) {
-                            chanceTypes = [
-                                { c: .05, types: [ItemType.rockA, ItemType.rockB, ItemType.rockC] }
-                            ];
-                            this.rollForItem(block, chanceTypes);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     fill(startX: number, endX: number, startY: number, endY: number, fillType: TerrainType, overwrite: boolean) {
         for (var y = startY; y < endY; y++) {
             for (var x = startX; x < endX; x++) {
@@ -793,6 +719,10 @@ export class Map {
         map.players.push(player);
     }
 
+    static removeSprite(map: Map, player: Player.Player) {
+        map.players = _.filter(map.players, function (p) { return p.id !== player.id; });
+    }
+
     static distance(map: Map, x1: number, x2: number, y1: number, y2: number) {
         return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
     }
@@ -881,7 +811,7 @@ export class Map {
     static getNearbyPlayer(map: Map, x: number, y: number, ignoreTeam: Player.Team) {
         var obj = this,
             players = _.filter(map.players, function (p: Player.Player) {
-                var isEnemy = true, //p.team !== ignoreTeam,
+                var isEnemy = p.team !== ignoreTeam,
                     isCloseX = Math.abs(p.sprite.x - x) < 50,
                     isCloseY = Math.abs(p.sprite.y - y) < 50;
 

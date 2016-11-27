@@ -90,8 +90,7 @@ define(["require", "exports", './world', './player', './sprite'], function (requ
             this.assets = [
                 { id: 'aaron', src: '/img/aaron.png' },
                 { id: 'kevin', src: '/img/kevin.png' },
-                { id: 'terrain', src: "/img/terrain.png" },
-                { id: 'items', src: "/img/itemset.png" }
+                { id: 'terrain', src: "/img/terrain.png" }
             ];
             this.imgCache = [];
         }
@@ -121,7 +120,7 @@ define(["require", "exports", './world', './player', './sprite'], function (requ
             function handleComplete() {
                 var sprites = [Player.Team[Player.Team.aaron], Player.Team[Player.Team.kevin]];
                 obj.importSpriteSet(sprites);
-                obj.importMapObjectsSet();
+                //obj.importMapObjectsSet();
                 callback();
             }
         };
@@ -159,18 +158,19 @@ define(["require", "exports", './world', './player', './sprite'], function (requ
             };
             obj.imgCache.push(imgData);
         };
-        GameRender.prototype.importMapObjectsSet = function () {
-            var obj = this, asset = obj.getAssetById('items');
-            for (var item in World.ItemType) {
-                var asInt = parseInt(item);
-                if (!isNaN(asInt)) {
-                    var imgId = World.MapItem.mapItemKey(asInt);
-                    if (!_.some(obj.imgCache, function (i) { return i.id === imgId; })) {
-                        obj.cacheMapObject(asset.value, asInt);
-                    }
-                }
-            }
-        };
+        //importMapObjectsSet() {
+        //    var obj = this,
+        //        asset = obj.getAssetById('items');
+        //    for (var item in World.ItemType) {
+        //        var asInt = parseInt(item);
+        //        if (!isNaN(asInt)) {
+        //            var imgId = World.MapItem.mapItemKey(asInt);
+        //            if (!_.some(obj.imgCache, function (i: CachedImageData) { return i.id === imgId; })) {
+        //                obj.cacheMapObject(asset.value, asInt);
+        //            }
+        //        }
+        //    }
+        //}
         GameRender.prototype.cacheMapObject = function (itemSet, itemType) {
             // cache imported img set if not already there
             var obj = this, imgId = World.MapItem.mapItemKey(itemType);
@@ -277,3 +277,4 @@ define(["require", "exports", './world', './player', './sprite'], function (requ
     }());
     exports.GameRender = GameRender;
 });
+//# sourceMappingURL=render.js.map

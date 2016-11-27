@@ -25,7 +25,8 @@ export class Manager {
                     obj.socket.emit('updateMe');
                 });
 
-                obj.socket.emit('playerReady');
+                var team = prompt("Choose your team. 0 = aaron, 1 = kevin");
+                obj.socket.emit('playerReady', parseInt(team));
             });
         });
     }
@@ -42,7 +43,7 @@ export class Manager {
 
     bindControls(gameData: Game.GameData) {
         var obj = this,
-            gameControls = new Controls.GameControls(),
+            gameControls = new Controls.KeyboardControls(),
             interval;
 
         //gameControls.onConnect = function () {
@@ -69,7 +70,6 @@ export class Manager {
             lastGameUpdate = now;
             $('#up').html("up: " + updateDuration.toString());
 
-            //var player = gameData.players[0],
             var ms = obj.gameRender.refresh(gameData);
 
             $('#fps').html("fps: " + ms);

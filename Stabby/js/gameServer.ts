@@ -23,13 +23,20 @@ export class GameServer {
             game = obj.games[0];
         }
 
-        if (game.players.length < 2) {
-            socket.on('playerReady', function () {
-                game.addPlayer(socket);
-            });
+        socket.on('playerReady', function (team) {
+            if (Player.Team[team]) {
+                game.addPlayer(socket, team);
+            }
+        });
 
-            socket.emit('gameReady', game);
-        }
+        socket.emit('gameReady', game);
+    }
+
+    disconnection(socket: SocketIO.Socket) {
+        var obj = this,
+            game = obj.games[0];
+
+        game.removePlayer(socket);
     }
 }
 
@@ -48,19 +55,31 @@ export class GameData {
         return new GameDataLight(this, player);
     }
 
-    addPlayer(socket: SocketIO.Socket) {
-        console.log('GameData.addplayer');
+    addPlayer(socket: SocketIO.Socket, team: Player.Team) {
+        console.log('GameData.addPlayer');
         var obj = this;
 
-        var team: Player.Team = obj.players.length;
-
-        obj.createClones(team);
+        //obj.createClones(team);
 
         var player = new Player.Player(team, true);
         obj.players.push(player);
         World.Map.addSprite(obj.map, player);
 
         obj.subscribePlayer(socket, player)
+    }
+
+    removePlayer(socket: SocketIO.Socket) {
+        console.log('GameData.removePlayer');
+        var obj = this;
+
+        var player = _.find(obj.players, function (p) {
+            return p.socketId == socket.id;
+        });
+
+        if (player) {
+            World.Map.removeSprite(obj.map, player);
+            obj.players = _.filter(obj.players, function (p) { return p.id !== player.id; });
+        }
     }
 
     createClones(team: Player.Team) {
@@ -99,6 +118,8 @@ export class GameData {
         socket.on('updateMe', function () {
             socket.emit('gameUpdate', obj.toLight(player));
         });
+
+        player.socketId = socket.id;
 
         socket.emit('subscribed');
 

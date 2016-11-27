@@ -1,4 +1,4 @@
-define(["require", "exports", './lib'], function (require, exports, Lib) {
+define(["require", "exports", 'underscore', './lib'], function (require, exports, _, Lib) {
     "use strict";
     (function (TerrainType) {
         TerrainType[TerrainType["ocean"] = 0] = "ocean";
@@ -232,7 +232,6 @@ define(["require", "exports", './lib'], function (require, exports, Lib) {
             // world
             this.initGrid();
             this.build();
-            this.createMapObjects();
         }
         World.prototype.initGrid = function () {
             // init grid
@@ -380,25 +379,6 @@ define(["require", "exports", './lib'], function (require, exports, Lib) {
                 }
             }
         };
-        World.prototype.rollForItem = function (block, chanceTypes) {
-            // roll for chance
-            var rand = Math.random(), prev = 0;
-            // chance types = [{ c: .1, types: [] }]
-            for (var c in chanceTypes) {
-                if (rand >= prev && rand <= prev + chanceTypes[c].c) {
-                    // now pick random item
-                    var itemType = chanceTypes[c].types[Math.round(Math.random() * (chanceTypes[c].types.length - 1))], item = new MapItem(itemType);
-                    item.x = item.width >= (this.tileSize / 2) ? block.x * this.tileSize + (this.tileSize / 2) : block.x * this.tileSize + (this.tileSize / 2);
-                    item.y = item.height >= (this.tileSize / 2) ? block.y * this.tileSize + (this.tileSize / 2) : block.y * this.tileSize + (this.tileSize / 2);
-                    item.blockX = block.x;
-                    item.blockY = block.y;
-                    item.sectionId = block.sectionId;
-                    this.map.objects.push(item);
-                    block.objects.push(item);
-                }
-                prev += chanceTypes[c].c;
-            }
-        };
         World.prototype.randShape = function (cx, cy, d, smooth, type, overwrite) {
             var startX = Math.round(cx - d - (d * Math.random())), endX = Math.round(cx + d + (d * Math.random())), startY = cy - d, endY = cy + d, prevPushA = 0, prevPushB = 0;
             startX = startX >= 0 ? startX : 0;
@@ -500,49 +480,6 @@ define(["require", "exports", './lib'], function (require, exports, Lib) {
                 prevPush = push;
             }
         };
-        World.prototype.createMapObjects = function () {
-            for (var sy = 0; sy < this.map.sectionsY; sy++) {
-                for (var sx = 0; sx < this.map.sectionsX; sx++) {
-                    var startX = sx * (this.numX / this.map.sectionsX), endX = startX + (this.numX / this.map.sectionsX), startY = sy * (this.numY / this.map.sectionsY), endY = startY + (this.numY / this.map.sectionsY);
-                    for (var y = startY; y < endY; y++) {
-                        var row = this.map.grid[y];
-                        for (var x = startX; x < endX; x++) {
-                            var block = row[x];
-                            var chanceTypes;
-                            if (block.type === TerrainType.beach) {
-                                chanceTypes = [
-                                    { c: .005, types: [ItemType.rockA, ItemType.rockB, ItemType.rockC, ItemType.bone] }
-                                ];
-                                this.rollForItem(block, chanceTypes);
-                            }
-                            else if (block.type === TerrainType.dirt) {
-                                chanceTypes = [
-                                    { c: .01, types: [ItemType.rockA, ItemType.rockB, ItemType.rockC, ItemType.bone] },
-                                    { c: .005, types: [ItemType.log, ItemType.stickA, ItemType.stickB] }
-                                ];
-                                this.rollForItem(block, chanceTypes);
-                            }
-                            else if (block.type === TerrainType.grass) {
-                                chanceTypes = [
-                                    { c: .005, types: [ItemType.rocksA, ItemType.rocksB, ItemType.rockD, ItemType.rockE] },
-                                    { c: .005, types: [ItemType.bone, ItemType.stickA, ItemType.stickB] },
-                                    { c: .1, types: [ItemType.grassA, ItemType.grassB, ItemType.grassC, ItemType.grassD] },
-                                    { c: .01, types: [ItemType.berry, ItemType.bush, ItemType.fern, ItemType.flowerA, ItemType.flowerB, ItemType.mushroom, ItemType.plant, ItemType.log] },
-                                    { c: .05, types: [ItemType.tree] }
-                                ];
-                                this.rollForItem(block, chanceTypes);
-                            }
-                            else if (block.type === TerrainType.rock) {
-                                chanceTypes = [
-                                    { c: .05, types: [ItemType.rockA, ItemType.rockB, ItemType.rockC] }
-                                ];
-                                this.rollForItem(block, chanceTypes);
-                            }
-                        }
-                    }
-                }
-            }
-        };
         World.prototype.fill = function (startX, endX, startY, endY, fillType, overwrite) {
             for (var y = startY; y < endY; y++) {
                 for (var x = startX; x < endX; x++) {
@@ -622,6 +559,9 @@ define(["require", "exports", './lib'], function (require, exports, Lib) {
             player.sprite.y = y;
             map.players.push(player);
         };
+        Map.removeSprite = function (map, player) {
+            map.players = _.filter(map.players, function (p) { return p.id !== player.id; });
+        };
         Map.distance = function (map, x1, x2, y1, y2) {
             return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
         };
@@ -682,8 +622,7 @@ define(["require", "exports", './lib'], function (require, exports, Lib) {
         };
         Map.getNearbyPlayer = function (map, x, y, ignoreTeam) {
             var obj = this, players = _.filter(map.players, function (p) {
-                var isEnemy = true, //p.team !== ignoreTeam,
-                isCloseX = Math.abs(p.sprite.x - x) < 50, isCloseY = Math.abs(p.sprite.y - y) < 50;
+                var isEnemy = p.team !== ignoreTeam, isCloseX = Math.abs(p.sprite.x - x) < 50, isCloseY = Math.abs(p.sprite.y - y) < 50;
                 return isEnemy && isCloseX && isCloseY;
             });
             return players[0];
@@ -692,3 +631,4 @@ define(["require", "exports", './lib'], function (require, exports, Lib) {
     }());
     exports.Map = Map;
 });
+//# sourceMappingURL=world.js.map

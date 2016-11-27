@@ -9,31 +9,35 @@ requirejs.config({
     nodeRequire: require
 });
 
-// server and socket io
-var port = process.env.port || 1337,
-    app = express(),
-    server = http.Server(app),
-    io = socket(server),
-    gameServer = requirejs('./scripts/gameServer'),
-    game = new gameServer.GameServer();
+requirejs(['underscore', './js/gameServer', './js/world', './js/player'],
+    function (_, GameServer, World, Player) {
+        var port = process.env.port || 1337,
+            app = express(),
+            server = http.Server(app),
+            io = socket(server),
+            game = new GameServer.GameServer();
 
-// socket io
-io.on("connection", function (socket) {
-    console.log("socket connection " + socket.id);
-    // find or start session
-    game.connection(socket);
-});
+        // socket io
+        io.on("connection", function (socket) {
+            console.log("socket connection " + socket.id);
+            // find or start session
+            game.connection(socket);
 
-io.on('disconnect', function () {
-    console.log("socket disconnect");
-});
+            socket.on('disconnect', function () {
+                console.log("socket disconnect");
+                game.disconnection(socket);
+            });
+        });
 
-// routing
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/public/default.html');
-});
+        // routing
+        //app.use('/html', express.static(path.join(__dirname, 'html')));
+        app.use('/img', express.static(path.join(__dirname, 'img')));
+        app.use('/js', express.static(path.join(__dirname, 'js')));
+        app.get('/', function (req, res) {
+            res.sendFile(__dirname + '/default.html');
+        });
 
-// start server
-server.listen(port);
-console.log("Express listening on 1337");
+        // start server
+        server.listen(port);
+        console.log("Express listening on 1337");
+    });

@@ -29,6 +29,7 @@ export enum PlayerAction {
 
 export class Player {
     id: string;
+    socketId: string;
     process: PlayerProcess;
     sprite: Sprite.Sprite;
     team: Team;
@@ -59,18 +60,18 @@ export class Player {
 
     registerControlsUpdates(socket: SocketIO.Socket) {
         var obj = this;
-        socket.on('updatePlayerControls', function (controls: Controls.GameControls) {
+        socket.on('updatePlayerControls', function (controls: Controls.KeyboardControls) {
             obj.update(controls);
         });
     }
 
-    update(controls: Controls.GameControls) {
+    update(controls: Controls.KeyboardControls) {
         // player can perform action
         this.processControls(controls);
         this.movement(controls);
     }
 
-    movement(controls: Controls.GameControls) {
+    movement(controls: Controls.KeyboardControls) {
         //var d = (controls.sprinting && !controls.looking) ? (controls.strength * 4) : ((controls.sprinting && controls.looking) ? (controls.strength * 3) : controls.strength * 2);
         var d = controls.sprinting ? controls.strength * 3 : controls.strength * 1.5;
         this.process.d = Math.ceil(d * this.process.slow);
@@ -83,7 +84,7 @@ export class Player {
         this.process.looking = controls.looking;
     }
 
-    processControls(controls: Controls.GameControls) {
+    processControls(controls: Controls.KeyboardControls) {
         for (var a in controls.keyActions) {
             var keyAction = controls.keyActions[a];
 

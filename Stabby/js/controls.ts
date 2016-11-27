@@ -7,70 +7,10 @@
     Shift = 16 //shift
 }
 
-export class Controls {
+export class KeyboardControls {
     x: number;
     y: number;
     keyActions: Array<ControlKey>;
-    public onConnect: Function;
-    public onDisconnect: Function;
-    checkGp;
-    hasGp: boolean;
-
-    constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.keyActions = [];
-        this.hasGp = false;
-    }
-
-    initGamepad() {
-        var obj = this;
-
-        if ("getGamepads" in window.navigator) {
-            $(window).on("gamepadconnected", function () {
-                console.log("connection event");
-
-                if (obj.onConnect) {
-                    obj.onConnect();
-                }
-            });
-
-            $(window).on("gamepaddisconnected", function () {
-                console.log("disconnection event");
-
-                obj.pollForGamepad();
-
-                if (obj.onDisconnect) {
-                    obj.onDisconnect();
-                }
-            });
-
-            obj.pollForGamepad();
-        }
-    }
-
-    pollForGamepad() {
-        var obj = this;
-
-        //setup an interval for Chrome
-        obj.checkGp = window.setInterval(function () {
-            if (window.navigator['getGamepads']()[0]) {
-                if (!obj.hasGp) $(window).trigger("gamepadconnected");
-                window.clearInterval(obj.checkGp);
-            }
-        }, 100);
-    }
-
-    clear() {
-        this.onConnect = null;
-        this.onDisconnect = null;
-        $(window).off("gamepadconnected");
-        $(window).off("gamepaddisconnected");
-        clearInterval(this.checkGp);
-    }
-}
-
-export class GameControls extends Controls {
     lookx: number;
     looky: number;
     strength: number;
@@ -79,8 +19,9 @@ export class GameControls extends Controls {
     keys
 
     constructor() {
-        super();
-
+        this.x = 0;
+        this.y = 0;
+        this.keyActions = [];
         this.lookx = 0;
         this.looky = 0;
         this.strength = 0;

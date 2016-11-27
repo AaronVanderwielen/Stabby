@@ -229,3 +229,4 @@ define(["require", "exports", 'underscore', "./lib", './controls', './sprite', '
     }());
     exports.Player = Player;
 });
+//# sourceMappingURL=player.js.map

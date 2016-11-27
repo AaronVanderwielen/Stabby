@@ -1,8 +1,3 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 define(["require", "exports"], function (require, exports) {
     "use strict";
     (function (ControlKey) {
@@ -14,57 +9,11 @@ define(["require", "exports"], function (require, exports) {
         ControlKey[ControlKey["Shift"] = 16] = "Shift"; //shift
     })(exports.ControlKey || (exports.ControlKey = {}));
     var ControlKey = exports.ControlKey;
-    var Controls = (function () {
-        function Controls() {
+    var KeyboardControls = (function () {
+        function KeyboardControls() {
             this.x = 0;
             this.y = 0;
             this.keyActions = [];
-            this.hasGp = false;
-        }
-        Controls.prototype.initGamepad = function () {
-            var obj = this;
-            if ("getGamepads" in window.navigator) {
-                $(window).on("gamepadconnected", function () {
-                    console.log("connection event");
-                    if (obj.onConnect) {
-                        obj.onConnect();
-                    }
-                });
-                $(window).on("gamepaddisconnected", function () {
-                    console.log("disconnection event");
-                    obj.pollForGamepad();
-                    if (obj.onDisconnect) {
-                        obj.onDisconnect();
-                    }
-                });
-                obj.pollForGamepad();
-            }
-        };
-        Controls.prototype.pollForGamepad = function () {
-            var obj = this;
-            //setup an interval for Chrome
-            obj.checkGp = window.setInterval(function () {
-                if (window.navigator['getGamepads']()[0]) {
-                    if (!obj.hasGp)
-                        $(window).trigger("gamepadconnected");
-                    window.clearInterval(obj.checkGp);
-                }
-            }, 100);
-        };
-        Controls.prototype.clear = function () {
-            this.onConnect = null;
-            this.onDisconnect = null;
-            $(window).off("gamepadconnected");
-            $(window).off("gamepaddisconnected");
-            clearInterval(this.checkGp);
-        };
-        return Controls;
-    }());
-    exports.Controls = Controls;
-    var GameControls = (function (_super) {
-        __extends(GameControls, _super);
-        function GameControls() {
-            _super.call(this);
             this.lookx = 0;
             this.looky = 0;
             this.strength = 0;
@@ -72,7 +21,7 @@ define(["require", "exports"], function (require, exports) {
             this.looking = false;
             this.initKeyboard();
         }
-        GameControls.prototype.initKeyboard = function () {
+        KeyboardControls.prototype.initKeyboard = function () {
             var obj = this;
             $(document).off('keydown').on('keydown', function (e) {
                 if (e.keyCode == ControlKey.W)
@@ -111,7 +60,7 @@ define(["require", "exports"], function (require, exports) {
                     obj.strength = 0;
             });
         };
-        GameControls.prototype.gamepadReport = function () {
+        KeyboardControls.prototype.gamepadReport = function () {
             var obj = this, gp = window.navigator['getGamepads']()[0];
             if (gp) {
                 for (var i = 0; i < gp.buttons.length; i++) {
@@ -155,7 +104,8 @@ define(["require", "exports"], function (require, exports) {
                 obj.sprinting = gp.buttons[10].pressed;
             }
         };
-        return GameControls;
-    }(Controls));
-    exports.GameControls = GameControls;
+        return KeyboardControls;
+    }());
+    exports.KeyboardControls = KeyboardControls;
 });
+//# sourceMappingURL=controls.js.map

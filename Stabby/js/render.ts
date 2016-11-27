@@ -158,8 +158,7 @@ export class GameRender {
         this.assets = [
             { id: 'aaron', src: '/img/aaron.png' },
             { id: 'kevin', src: '/img/kevin.png' },
-            { id: 'terrain', src: "/img/terrain.png" },
-            { id: 'items', src: "/img/itemset.png" }
+            { id: 'terrain', src: "/img/terrain.png" }
         ];
 
         this.imgCache = [];
@@ -198,7 +197,7 @@ export class GameRender {
         function handleComplete() {
             var sprites = [Player.Team[Player.Team.aaron], Player.Team[Player.Team.kevin]];
             obj.importSpriteSet(sprites);
-            obj.importMapObjectsSet();
+            //obj.importMapObjectsSet();
             callback();
         }
     }
@@ -250,21 +249,21 @@ export class GameRender {
         obj.imgCache.push(imgData);
     }
 
-    importMapObjectsSet() {
-        var obj = this,
-            asset = obj.getAssetById('items');
+    //importMapObjectsSet() {
+    //    var obj = this,
+    //        asset = obj.getAssetById('items');
 
-        for (var item in World.ItemType) {
-            var asInt = parseInt(item);
-            if (!isNaN(asInt)) {
-                var imgId = World.MapItem.mapItemKey(asInt);
+    //    for (var item in World.ItemType) {
+    //        var asInt = parseInt(item);
+    //        if (!isNaN(asInt)) {
+    //            var imgId = World.MapItem.mapItemKey(asInt);
 
-                if (!_.some(obj.imgCache, function (i: CachedImageData) { return i.id === imgId; })) {
-                    obj.cacheMapObject(asset.value, asInt);
-                }
-            }
-        }
-    }
+    //            if (!_.some(obj.imgCache, function (i: CachedImageData) { return i.id === imgId; })) {
+    //                obj.cacheMapObject(asset.value, asInt);
+    //            }
+    //        }
+    //    }
+    //}
 
     cacheMapObject(itemSet: HTMLImageElement, itemType: World.ItemType) {
         // cache imported img set if not already there

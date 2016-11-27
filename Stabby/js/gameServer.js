@@ -14,12 +14,16 @@ define(["require", "exports", "underscore", "./lib", "./player", "./world"], fun
             else {
                 game = obj.games[0];
             }
-            if (game.players.length < 2) {
-                socket.on('playerReady', function () {
-                    game.addPlayer(socket);
-                });
-                socket.emit('gameReady', game);
-            }
+            socket.on('playerReady', function (team) {
+                if (Player.Team[team]) {
+                    game.addPlayer(socket, team);
+                }
+            });
+            socket.emit('gameReady', game);
+        };
+        GameServer.prototype.disconnection = function (socket) {
+            var obj = this, game = obj.games[0];
+            game.removePlayer(socket);
         };
         return GameServer;
     }());
@@ -33,15 +37,25 @@ define(["require", "exports", "underscore", "./lib", "./player", "./world"], fun
         GameData.prototype.toLight = function (player) {
             return new GameDataLight(this, player);
         };
-        GameData.prototype.addPlayer = function (socket) {
-            console.log('GameData.addplayer');
+        GameData.prototype.addPlayer = function (socket, team) {
+            console.log('GameData.addPlayer');
             var obj = this;
-            var team = obj.players.length;
-            obj.createClones(team);
+            //obj.createClones(team);
             var player = new Player.Player(team, true);
             obj.players.push(player);
             World.Map.addSprite(obj.map, player);
             obj.subscribePlayer(socket, player);
+        };
+        GameData.prototype.removePlayer = function (socket) {
+            console.log('GameData.removePlayer');
+            var obj = this;
+            var player = _.find(obj.players, function (p) {
+                return p.socketId == socket.id;
+            });
+            if (player) {
+                World.Map.removeSprite(obj.map, player);
+                obj.players = _.filter(obj.players, function (p) { return p.id !== player.id; });
+            }
         };
         GameData.prototype.createClones = function (team) {
             console.log('GameData.createClones');
@@ -73,6 +87,7 @@ define(["require", "exports", "underscore", "./lib", "./player", "./world"], fun
             socket.on('updateMe', function () {
                 socket.emit('gameUpdate', obj.toLight(player));
             });
+            player.socketId = socket.id;
             socket.emit('subscribed');
             obj.startGame();
         };
@@ -102,3 +117,4 @@ define(["require", "exports", "underscore", "./lib", "./player", "./world"], fun
     }());
     exports.GameDataLight = GameDataLight;
 });
+//# sourceMappingURL=gameServer.js.map

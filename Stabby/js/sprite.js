@@ -35,3 +35,4 @@ define(["require", "exports", "./lib", "./world"], function (require, exports, L
     }());
     exports.Sprite = Sprite;
 });
+//# sourceMappingURL=sprite.js.map

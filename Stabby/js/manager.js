@@ -14,7 +14,8 @@ define(["require", "exports", "./controls", './render'], function (require, expo
                         obj.subscribeToUpdates();
                         obj.socket.emit('updateMe');
                     });
-                    obj.socket.emit('playerReady');
+                    var team = prompt("Choose your team. 0 = aaron, 1 = kevin");
+                    obj.socket.emit('playerReady', parseInt(team));
                 });
             });
         };
@@ -28,7 +29,7 @@ define(["require", "exports", "./controls", './render'], function (require, expo
             });
         };
         Manager.prototype.bindControls = function (gameData) {
-            var obj = this, gameControls = new Controls.GameControls(), interval;
+            var obj = this, gameControls = new Controls.KeyboardControls(), interval;
             //gameControls.onConnect = function () {
             interval = setInterval(function () {
                 obj.socket.emit('updatePlayerControls', gameControls);
@@ -45,7 +46,6 @@ define(["require", "exports", "./controls", './render'], function (require, expo
                 var now = new Date(), updateDuration = now.getTime() - lastGameUpdate.getTime();
                 lastGameUpdate = now;
                 $('#up').html("up: " + updateDuration.toString());
-                //var player = gameData.players[0],
                 var ms = obj.gameRender.refresh(gameData);
                 $('#fps').html("fps: " + ms);
                 obj.socket.emit('updateMe');
@@ -55,3 +55,4 @@ define(["require", "exports", "./controls", './render'], function (require, expo
     }());
     exports.Manager = Manager;
 });
+//# sourceMappingURL=manager.js.map
