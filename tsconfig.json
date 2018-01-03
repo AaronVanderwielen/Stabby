@@ -1,0 +1,12 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"noImplicitAny": true,
+        "sourceMap": true,
+        "module": "amd"
+	},
+	"include": [
+        ".",
+        "/js/game*"
+	]
+}
